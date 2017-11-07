@@ -10,7 +10,8 @@ import serial
 class CurrentSUP(object):
     '''CLass with basic methods for current supply'''
     def __init__(self):
-        self.COMport='COM4'     #'''Com port wich current suply is connected to'''
+        self.COMport='COM4'#'''Com port wich current suply is connected to'''
+        self.COMportSwitch='COM3'
         self.RSaddress='A007'    # '''address of RS-485 port(have no idea where to get it)'''
         self.Current=0 
         self.Voltage=0
@@ -58,18 +59,33 @@ class CurrentSUP(object):
         SCPICommands=['SYST:REM','SOUR:VOLT 0.0', 'SOUR:CURR 0.0', 'OUTP 0', 'SYST:LOC']
         self.writeSCPICommand(SCPICommands)
         
-    def ReadOut(self):
+    def GetVoltage(self):
         ser=serial.Serial()
         ser.baudrate=115200
         ser.port=self.COMport
         ser.open()
-        Value=ser.read()
+        ser.write(self.writestring(['MEAS:VOLT?']))
+        Value=float(str(ser.readline())[2:13])
         ser.close()
         return Value
         
-    def GetCurrent(self):
-        SCPICommands=['SOUR:VOLT?']
-        self.writeSCPICommand(SCPICommands)
-        self.Current= self.ReadOut()
+    def ReadAddress(self):
+        ser=serial.Serial()
+        ser.baudrate=115200
+        ser.port=self.COMport
+        ser.open()
+        ser.write(self.writestring(['MEAS:ADDR?']))
+        Value=ser.readline()
+        ser.close()
+        return Value
+    
+    def SwitchReverse(self):
+        ser=serial.Serial()
+        ser.baudrate=9600
+        ser.port=self.COMportSwitch
+        ser.open()
+        ser.write('Reverse'.encode('utf-8'))
+        ser.close()
+        
         
         
