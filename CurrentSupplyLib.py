@@ -6,6 +6,7 @@ Created on Mon Nov  6 14:50:27 2017
 """
 
 import serial
+import time
 
 class CurrentSUP(object):
     '''CLass with basic methods for current supply'''
@@ -60,6 +61,7 @@ class CurrentSUP(object):
         '''Put setted current on the current supply'''
         SCPICommands=['SYST:REM', 'OUTP 1']
         self.writeSCPICommand(SCPICommands)
+        time.sleep(0.3)
         self.CurrentON=True
         print( 'Current is put on magnet!!!')
     

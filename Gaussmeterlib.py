@@ -7,6 +7,8 @@ Created on Tue Nov  7 18:39:44 2017
 
 import serial
 import time
+import numpy
+
 class Gaussmeter(object):
     def __init__(self):
         self.COMport='COM5'
@@ -34,11 +36,13 @@ class Gaussmeter(object):
     
     def MeasureField(self,Avg):
         fields=[]
-        for i in Avg:
-            fields.append(self.init())
+        while len(fields)<Avg:
+            Value=self.init()
+            if type(Value)==float:
+                fields.append(Value)
+            else: print(Value)
         field=sum(fields)/len(fields)
         return(field)
         
-
     
     

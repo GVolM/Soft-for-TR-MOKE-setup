@@ -5,8 +5,11 @@ Created on Wed Nov  8 10:37:26 2017
 @author: vgrigore
 """
 
-import CurrentSupplylib
+import CurrentSupplyLib
 import Gaussmeterlib
+import matplotlib
+
+
 
 class MagnetCallibration(object):
     
@@ -17,21 +20,24 @@ class MagnetCallibration(object):
     def CreateCurrents(self, startCurr, finCurr, Points):
         step=(finCurr-startCurr)/Points
         curr=startCurr
-        self.Currents.append(curr)
-        for item in Points:
-            curr=curr+step*item
+        for item in range(0,Points):
+            curr=startCurr+step*item
             self.Currents.append(curr)
+        self.Currents.append(finCurr)
         
     def MeasureFields(self):
-        CurrentSup=CurrentSupplylib.CurrentSUP()
+        self.Fields=[]
+        CurrentSup=CurrentSupplyLib.CurrentSUP()
         CurrentSup.initcurrentsupply()
         CurrentSup.SetVoltage(40)
+        CurrentSup.SetCurrent(0)
+        CurrentSup.OutputON()
         Gauss=Gaussmeterlib.Gaussmeter()
         for item in self.Currents:
             CurrentSup.SetCurrent(item)
-            CurrentSup.OutputON()
             self.Fields.append(Gauss.MeasureField(10))
-            
-        
-        
+        CurrentSup.OutputOFF()    
+        CurrentSup.SetVoltage(0)
+        CurrentSup.SetCurrent(0)
+        matplotlib.pyplot.plot(self.Currents,self.Fields)
         
