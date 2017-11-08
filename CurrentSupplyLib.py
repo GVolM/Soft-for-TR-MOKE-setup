@@ -99,7 +99,7 @@ class CurrentSUP(object):
         ser.port=self.COMport
         try:
             ser.open()
-            ser.write(self.writestring(['MEAS:VOLT?']))
+            ser.write(self.writestring(['MEAS:CURR?']))
             Value=float(str(ser.readline())[2:13])
             ser.close()
             self.CurrentMeas=Value

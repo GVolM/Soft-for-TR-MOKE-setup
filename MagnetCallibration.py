@@ -15,9 +15,11 @@ class MagnetCallibration(object):
     
     def __init__(self):
         self.Currents=[]
+        self.CurrentReal=[]
         self.Fields=[]
         
     def CreateCurrents(self, startCurr, finCurr, Points):
+        self.Currents=[]
         step=(finCurr-startCurr)/Points
         curr=startCurr
         for item in range(0,Points):
@@ -25,8 +27,10 @@ class MagnetCallibration(object):
             self.Currents.append(curr)
         self.Currents.append(finCurr)
         
+        
     def MeasureFields(self):
         self.Fields=[]
+        self.CurrentReal=[]
         CurrentSup=CurrentSupplyLib.CurrentSUP()
         CurrentSup.initcurrentsupply()
         CurrentSup.SetVoltage(40)
@@ -35,9 +39,13 @@ class MagnetCallibration(object):
         Gauss=Gaussmeterlib.Gaussmeter()
         for item in self.Currents:
             CurrentSup.SetCurrent(item)
-            self.Fields.append(Gauss.MeasureField(10))
+            self.Fields.append(Gauss.MeasureField(5))
+            CurrentSup.GetCurrent()
+            self.CurrentReal.append(CurrentSup.CurrentMeas)
         CurrentSup.OutputOFF()    
         CurrentSup.SetVoltage(0)
         CurrentSup.SetCurrent(0)
         matplotlib.pyplot.plot(self.Currents,self.Fields)
+        matplotlib.pyplot.plot(self.CurrentReal,self.Fields)
+        
         
