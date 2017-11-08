@@ -7,7 +7,7 @@ Created on Tue Nov  7 18:39:44 2017
 
 import serial
 import time
-import numpy
+
 
 class Gaussmeter(object):
     def __init__(self):
@@ -38,9 +38,12 @@ class Gaussmeter(object):
         fields=[]
         while len(fields)<Avg:
             Value=self.init()
-            if type(Value)==float:
-                fields.append(Value)
-            else: print(Value)
+            Value2=self.init()
+            if type(Value)and(type(Value2))==float:
+                if (Value - Value2)<10:
+                    fields.append((Value+Value2)/2)
+                else: print(Value, Value2)
+            else: print(Value,Value2)
         field=sum(fields)/len(fields)
         return(field)
         
