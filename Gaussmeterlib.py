@@ -17,12 +17,12 @@ class Gaussmeter(object):
         ser=serial.Serial()
         ser.baudrate=9600
         ser.port=self.COMport
+        time.sleep(0.1)
         try:
             ser.open()
             string=ser.read(16)
             sign=(-1)**(int(string[5:6]))
-            Value=sign*float(string[7:-1])/10
-                    
+            Value=sign*float(string[7:-1])/10   
             ser.close()
             print(int(string[5:6]))
             print('H=', Value, ' mT')
@@ -31,9 +31,14 @@ class Gaussmeter(object):
             Value='xui'
         time.sleep(0.1)
         return(Value)
+    
+    def MeasureField(self,Avg):
+        fields=[]
+        for i in Avg:
+            fields.append(self.init())
+        field=sum(fields)/len(fields)
+        return(field)
         
-for i in range(1,100):
-    g=Gaussmeter()
-    g.init()
+
     
     
