@@ -12,7 +12,7 @@ import time
 class Gaussmeter(object):
     def __init__(self):
         self.COMport='COM5'
-        
+        self.delta=10 # error parametr in mT
         
         
     def init(self):
@@ -40,7 +40,7 @@ class Gaussmeter(object):
             Value=self.init()
             Value2=self.init()
             if type(Value)and(type(Value2))==float:
-                if (Value - Value2)<10:
+                if (Value - Value2)<self.delta:
                     fields.append((Value+Value2)/2)
                 else: print(Value, Value2)
             else: print(Value,Value2)
