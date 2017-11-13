@@ -143,4 +143,3 @@ class CurrentSUP(object):
             ser.write('Forward'.encode('utf-8'))
             ser.close()
         except: ser.close()
-        
