@@ -49,3 +49,5 @@ class MagnetCallibration(object):
         matplotlib.pyplot.plot(self.CurrentReal,self.Fields)
         
         
+    def SaveCallibrationFile(self):
+        pass

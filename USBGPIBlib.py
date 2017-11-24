@@ -31,7 +31,7 @@ class USBGPIB(object):
                             '10s':12,'30s':13,'100s':14,'300s':15,'1ks':16,'3ks':17,
                             '10ks':18,'30ks':19}
         
-        self.LowPassFilterSlopeDict={'6 dB/odt':0, '12 dB/odt':1, '18 dB/odt':2, '24 dB/odt':3}
+        self.LowPassFilterSlopeDict={'6 dB':0, '12 dB':1, '18 dB':2, '24 dB':3}
         
     def connect(self):
         try:    
@@ -56,16 +56,18 @@ class USBGPIB(object):
     def ReadLockIn(self, Command):
         try:
             self.ser.open()
-            self.ser.write(Command)
+            self.ser.write((Command+'\r\n').encode('utf-8'))
             self.ser.write(('++read\r\n').encode('utf-8'))
             Value=self.ser.readline()
+            self.ser.close()
             return Value
         except:
             self.ser.close()
+            print('error')
             
     def ReadValue(self,parametr):
         '''parametr is a string like in manual. except Theta'''
-        Command='OUTP ?' + self.OutputDict[parametr]
+        Command='OUTP ?' + str(self.OutputDict[parametr])
         Value=self.ReadLockIn(Command)
         print(Value)
         
@@ -90,4 +92,14 @@ class USBGPIB(object):
     
     def GetSensetivity(self):
         self.SendCommand('SENS ?')
-        
+
+if __name__ == '__main__':
+       
+    a=USBGPIB()
+    a.connect()
+    time0=time.clock()
+    for i in range(0,100):
+        a.ReadValue('X')
+    
+    time1=time.clock()
+    print(time1-time0)
