@@ -51,3 +51,5 @@ class MagnetCallibration(object):
         
     def SaveCallibrationFile(self):
         pass
+    
+

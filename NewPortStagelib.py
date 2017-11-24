@@ -14,7 +14,6 @@ Created on Tue May  9 14:06:55 2017
 
 import sys
 import clr 
-import CommandInterfaceXPS  
 import System
 #import time
 
@@ -24,6 +23,7 @@ class NewPortStage(object):
         self.NETAssemblyPath=r'C:\Windows\Microsoft.NET\assembly\GAC_64\Newport.XPS.CommandInterface\v4.0_1.0.0.0__9a267756cf640dcf'
         sys.path.append(self.NETAssemblyPath)
         clr.AddReference("Newport.XPS.CommandInterface")
+        import CommandInterfaceXPS 
         self.myXPS=CommandInterfaceXPS.XPS()
         self.Address='192.168.254.254'
         self.Port=5001

@@ -60,7 +60,7 @@ class USBGPIB(object):
             self.ser.write(('++read\r\n').encode('utf-8'))
             Value=self.ser.readline()
             self.ser.close()
-            return Value
+            return float(Value)
         except:
             self.ser.close()
             print('error')
@@ -69,7 +69,8 @@ class USBGPIB(object):
         '''parametr is a string like in manual. except Theta'''
         Command='OUTP ?' + str(self.OutputDict[parametr])
         Value=self.ReadLockIn(Command)
-        print(Value)
+        print(str(Value)+' V')
+        return Value
         
     def SetToDefault(self):
         self.SendCommand('*RST')
@@ -98,7 +99,7 @@ if __name__ == '__main__':
     a=USBGPIB()
     a.connect()
     time0=time.clock()
-    for i in range(0,100):
+    for i in range(0,10):
         a.ReadValue('X')
     
     time1=time.clock()

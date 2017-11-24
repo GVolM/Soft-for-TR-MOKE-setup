@@ -126,9 +126,12 @@ class CurrentSUP(object):
         ser.port=self.COMportSwitch
         try:
             ser.open()
+            time.sleep(1)
             ser.write('Reverse'.encode('utf-8'))
             ser.close()
-        except: ser.close()
+        except: 
+            ser.close()
+            print('error')
         
      
     def SwitchForward(self):
@@ -140,8 +143,18 @@ class CurrentSUP(object):
         ser.port=self.COMportSwitch
         try:
             ser.open()
+            time.sleep(1)
             ser.write('Forward'.encode('utf-8'))
             ser.close()
         except: 
             ser.close()
             print('error')
+            
+if __name__=='__main__':
+    ser=serial.Serial()
+    ser.baudrate=9600
+    ser.port='COM3'
+    ser.open()
+    time.sleep(1)
+    ser.write('Reverse'.encode('utf-8'))
+    ser.close() 
