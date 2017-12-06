@@ -34,12 +34,14 @@ class USBGPIB(object):
         self.LowPassFilterSlopeDict={'6 dB':0, '12 dB':1, '18 dB':2, '24 dB':3}
         
     def connect(self):
+        '''Set up the the connection with USB to GPIB adapter, opens port, sets up adater for communication with Lokin SR830m
+        After using Lockin use Disconnect function to close the port'''
         try:    
             self.ser.open()
             self.ser.write('++ver\r\n'.encode('utf-8'))
             Value=self.ser.readline()
             print(Value)
-            self.ser.close()
+            #self.ser.close()
             self.SendCommand('++eoi 1')
             self.SendCommand('++eos 2')
         except: 
@@ -48,20 +50,20 @@ class USBGPIB(object):
         
     def SendCommand(self,Command):
         try:
-            self.ser.open()
+            #self.ser.open()
             self.ser.write((Command+'\r\n').encode('utf-8'))
-            self.ser.close()
+            #self.ser.close()
         except: 
             print('xui')
-            self.ser.close()
+            #self.ser.close()
     
     def ReadLockIn(self, Command):
         try:
-            self.ser.open()
+            #self.ser.open()
             self.ser.write((Command+'\r\n').encode('utf-8'))
             self.ser.write(('++read eoi\r\n').encode('utf-8'))
             Value=self.ser.readline()
-            self.ser.close()
+            #self.ser.close()
             return Value
         except:
             self.ser.close()
@@ -124,3 +126,4 @@ if __name__ == '__main__':
         #print(Value)
     time1=time.clock()
     print(time1-time0)
+    a.Dissconnect()
