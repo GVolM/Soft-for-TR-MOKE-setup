@@ -6,14 +6,13 @@ Created on Mon Nov 13 00:18:00 2017
 """
 
 import serial
-
-def Cyostat(object):
+class Cryostat(object):
     
     def __init__(self):
         self.temperuture=0              
         self.ser=serial.Serial()
-        self.ser.port='COM4'
-        self.ser.baudrate=115200
+        self.ser.port='COM1'
+        self.ser.baudrate=9600
         
     def writestring(self, SCPICommands):
         '''Transform list of SCPI commands to strig for writing to RS-485 port. Adds address of port and seporator, transform it to required format. SCPICommands should be list of strings'''
@@ -23,6 +22,10 @@ def Cyostat(object):
         String=String - ':'+'\n'
         return String.encode('utf-8')
     
+    def SendCommand(self, Command):
+        self.ser.open()
+        self.ser.write((Command).encode('utf-8'))
+        self.ser.close()
     
     def connect(self):
         try:

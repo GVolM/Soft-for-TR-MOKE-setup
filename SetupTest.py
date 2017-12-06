@@ -40,7 +40,7 @@ def MeasureHys():
     
     
     for item in Currents2:
-        print(item)
+        print(-item)
         Magnet.SetCurrent(-item)
         time.sleep(1)
         Signal.append(Meas())
@@ -50,6 +50,7 @@ def MeasureHys():
     Magnet.OutputON()
     
     for item in Currents2:
+        print(item)
         Magnet.SetCurrent(-item)
         time.sleep(1)
         Signal.append(Meas())
@@ -65,7 +66,6 @@ def Meas():
     val=sum(signal)/avg
     return val   
     
-
 MeasureHys()
  
 #Magnet.SetCurrent(5)

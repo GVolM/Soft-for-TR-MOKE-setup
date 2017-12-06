@@ -40,6 +40,8 @@ class USBGPIB(object):
             Value=self.ser.readline()
             print(Value)
             self.ser.close()
+            self.SendCommand('++eoi 1')
+            self.SendCommand('++eos 2')
         except: 
             print('xui')
             self.ser.close()    
@@ -57,10 +59,10 @@ class USBGPIB(object):
         try:
             self.ser.open()
             self.ser.write((Command+'\r\n').encode('utf-8'))
-            self.ser.write(('++read\r\n').encode('utf-8'))
+            self.ser.write(('++read eoi\r\n').encode('utf-8'))
             Value=self.ser.readline()
             self.ser.close()
-            return float(Value)
+            return Value
         except:
             self.ser.close()
             print('error')
@@ -68,9 +70,24 @@ class USBGPIB(object):
     def ReadValue(self,parametr):
         '''parametr is a string like in manual. except Theta'''
         Command='OUTP ?' + str(self.OutputDict[parametr])
-        Value=self.ReadLockIn(Command)
+        Value=float(self.ReadLockIn(Command))
         print(str(Value)+' V')
         return Value
+        
+    def readSnap(self, parametrs):
+        '''Read chosen Values from Lokin simultaniously. returns dictionary of values. Paramewtrs is a list of strings from outputDict. Sould be at least 2'''
+        command='SNAP ? '
+        for item in parametrs:
+            command=command + str(self.OutputDict[item]) + ', '
+        command=command[:-2]
+        string=str(self.ReadLockIn(command))[2:-4]
+        values=string.split(',')
+        output={}
+        for idx, item in enumerate(parametrs):
+            output[item]=float(values[idx])
+        print(output)
+        return output
+        
         
     def SetToDefault(self):
         self.SendCommand('*RST')
@@ -93,14 +110,17 @@ class USBGPIB(object):
     
     def GetSensetivity(self):
         self.SendCommand('SENS ?')
+    
+    def Dissconnect(self):
+        self.ser.close()
 
 if __name__ == '__main__':
-       
     a=USBGPIB()
-    a.connect()
+    a.connect()    #a.ser.write((Command+'\r\n').encode('utf-8'))
+    #a.ser.write(('++read\r\n').encode('utf-8'))
     time0=time.clock()
     for i in range(0,10):
         a.ReadValue('X')
-    
+        #print(Value)
     time1=time.clock()
     print(time1-time0)

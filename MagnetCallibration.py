@@ -8,7 +8,7 @@ Created on Wed Nov  8 10:37:26 2017
 import CurrentSupplyLib
 import Gaussmeterlib
 import matplotlib
-
+import time
 
 
 class MagnetCallibration(object):
@@ -39,7 +39,8 @@ class MagnetCallibration(object):
         Gauss=Gaussmeterlib.Gaussmeter()
         for item in self.Currents:
             CurrentSup.SetCurrent(item)
-            self.Fields.append(Gauss.MeasureField(5))
+            time.sleep(0.5)
+            self.Fields.append(Gauss.MeasureField(2))
             CurrentSup.GetCurrent()
             self.CurrentReal.append(CurrentSup.CurrentMeas)
         CurrentSup.OutputOFF()    
@@ -52,4 +53,7 @@ class MagnetCallibration(object):
     def SaveCallibrationFile(self):
         pass
     
-
+if __name__=='__main__':
+    a=MagnetCallibration()
+    a.CreateCurrents(0,5,20)
+    a.MeasureFields()
