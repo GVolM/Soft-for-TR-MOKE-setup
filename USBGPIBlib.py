@@ -33,88 +33,305 @@ class USBGPIB(object):
         
         self.LowPassFilterSlopeDict={'6 dB':0, '12 dB':1, '18 dB':2, '24 dB':3}
         
+        self.inputConfig={'A':0,'A-B':1,'I(1mOm)':2,'I(100mOm)':3}
+        
+        self.inputShield={'Float':0,'Ground':1}
+        
+        self.inputCoupling={'AC':0,'DC':1}
+        
+        self.inputLineNotchFilter={'no filters':0,'Line notch':1,'2xLine notch':2,'Both notch':3}
+        
+        self.reserveMode={'Nigh Reserve':0, 'Normal':1,'Low Noise':2}
+        
+        self.synchronousFilter={'Off':0,'below 200Hz':1}
+        
+        self.referenceSource={'internal':0,'external':1}
+        
+        self.referenceTrigger={'Zero crossing':0,'Rising edge':1,'Falling edge':2}
+        
+        self.configuration={'Sensitivity':0,'Time constant':0,'Low pass filter slope':0,'Input configuration':0,'Input shield':0,
+                            'Input coupling':0, 'Input notch filter':0, 'Reserve mode':0,'Synchronous filter':0,'Reference source':0,
+                            'Frequency':1,'Reference trigger':0,'Detection harmonic':1,'Sine output amplitude':2}
+        
+#%% conection to Prologix USB-GPIB adapter
+
     def connect(self):
         '''Set up the the connection with USB to GPIB adapter, opens port, sets up adater for communication with Lokin SR830m
-        After using Lockin use Disconnect function to close the port'''
+        After using Lockin use Disconnect function to close the port
+        '''
         try:    
-            self.ser.open()
-            self.ser.write('++ver\r\n'.encode('utf-8'))
-            Value=self.ser.readline()
+            self.ser.open() # opens COM port with values in this class, Opens ones so after using use disconnecnt function to close it
+            self.ser.write('++ver\r\n'.encode('utf-8')) # query version of the prologix USB-GPIB adapter to test connection
+            Value=self.ser.readline() # reads version
             print(Value)
             #self.ser.close()
-            self.SendCommand('++eoi 1')
-            self.SendCommand('++eos 2')
-        except: 
-            print('xui')
-            self.ser.close()    
-        
-    def SendCommand(self,Command):
-        try:
-            #self.ser.open()
-            self.ser.write((Command+'\r\n').encode('utf-8'))
-            #self.ser.close()
-        except: 
-            print('xui')
-            #self.ser.close()
-    
-    def ReadLockIn(self, Command):
-        try:
-            #self.ser.open()
-            self.ser.write((Command+'\r\n').encode('utf-8'))
-            self.ser.write(('++read eoi\r\n').encode('utf-8'))
-            Value=self.ser.readline()
-            #self.ser.close()
-            return Value
-        except:
-            self.ser.close()
-            print('error')
+            self.sendCommand('++eoi 1') # enable the eoi signal mode, which signals about and of the line
+            self.sendCommand('++eos 2') # sets up the terminator <lf> wich will be added to every command for Lockin, this is only for GPIB connetction
+        except Exception as xui: 
+            print('error'+str(xui))
+            self.ser.close()   
             
-    def ReadValue(self,parametr):
-        '''parametr is a string like in manual. except Theta'''
+    def disconnect(self):
+        '''Close com port
+        '''
+        self.ser.close()
+        
+    def sendCommand(self,Command):
+        '''Send any command to the opened port in right format. 
+        Comands which started with ++ goes to the prologix adapter, others go directly to device(Lockin)
+        '''
+        try:
+            #self.ser.open()
+            self.ser.write((Command+'\r\n').encode('utf-8'))
+            #self.ser.close()
+        except: 
+            print('xui')
+            #self.ser.close()
+            
+#%% Reading Lockin SR830 functions
+    
+    def readLockIn(self, Command):
+        '''reads any information from lockin, input command should be query command for lockin, see manual.
+        Returns answer from lockin as a byte
+        '''
+        try:
+            #self.ser.open()
+            self.ser.write((Command+'\r\n').encode('utf-8')) # query info from lockin. adapter reads answer automaticaly and store it
+            self.ser.write(('++read eoi\r\n').encode('utf-8')) # query data stored in adapter, eoi means that readin will end as soon as special caracter will recieved. without it will read before timeout, which slow down reading
+            Value=self.ser.readline() # reads answer
+            #self.ser.close()
+            return Value 
+        except Exception as r:
+            self.ser.close()
+            print(r)
+            
+    def readValue(self,parametr):
+        '''Reads measured value from lockin. Parametr is a string like in manual. 
+        except Theta. Che the dictionary of parametrs for Output
+        '''
         Command='OUTP ?' + str(self.OutputDict[parametr])
-        Value=float(self.ReadLockIn(Command))
+        Value=float(self.readLockIn(Command)) # returns value as a float 
         print(str(Value)+' V')
         return Value
         
     def readSnap(self, parametrs):
-        '''Read chosen Values from Lokin simultaniously. returns dictionary of values. Paramewtrs is a list of strings from outputDict. Sould be at least 2'''
+        '''Read chosen Values from Lokin simultaniously. returns dictionary of values. 
+        Parametrs is a list of strings from outputDict. Sould be at least 2
+        '''
         command='SNAP ? '
         for item in parametrs:
-            command=command + str(self.OutputDict[item]) + ', '
-        command=command[:-2]
-        string=str(self.ReadLockIn(command))[2:-4]
-        values=string.split(',')
+            command=command + str(self.OutputDict[item]) + ', ' # compose command string with parametrs in input
+        command=command[:-2] # cut last ', ' 
+        string=str(self.readLockIn(command))[2:-4] #reads answer, transform it to string, cut system characters
+        values=string.split(',') # split answer to separated values
         output={}
-        for idx, item in enumerate(parametrs):
-            output[item]=float(values[idx])
+        for idx, item in enumerate(parametrs): 
+            output[item]=float(values[idx]) # compose dictionary of values(float)
         print(output)
         return output
         
+#%% Set parametrs functions
         
-    def SetToDefault(self):
-        self.SendCommand('*RST')
+    def setToDefault(self):
+        '''Reset lockin
+        '''
+        self.sendCommand('*RST')
     
-    def SetSensitivity(self, sens):
-        '''Sets the sensitivity on SR830 Lock in. sens is string like on the front panel, mk=u'''
-        command='SENS'+str(self.SensDict[sens])
-        self.SendCommand(command)
+    def setSensitivity(self, sens):
+        '''Sets the sensitivity on SR830 Lock in. sens is string like on the front panel, mk=u
+        '''
+        if type(sens)==str:
+            command='SENS'+str(self.SensDict[sens])
+        else:
+            command='SENS'+str(sens)
+        self.sendCommand(command)
         
-    def SetTimeConstant(self, TimeConst):
-        '''Sets the Time Constant on SR830 Lock in. sens is string like on the front panel, mk=u'''
-        command='OFLT'+str(self.TimeConstDict[TimeConst])
-        self.SendCommand(command)
+        
+    def setTimeConstant(self, timeConst):
+        '''Sets the Time Constant on SR830 Lock in. sens is string like on the front panel, mk=u
+        '''
+        if type(timeConst)==str:
+            command='OFLT'+str(self.TimeConstDict[timeConst])
+        else:
+            command='OFLT'+str(timeConst)
+        self.sendCommand(command)
     
-    def SetLowPassFilterSlope(self, LPFilt):
-        '''Sets the low pass filter slope on SR830 Lock in. sens is string like on the front panel'''
-        command='OFSL'+str(self.LowPassFilterSlopeDict[LPFilt])
-        self.SendCommand(command)
+    def setLowPassFilterSlope(self, LPFilt):
+        '''Sets the low pass filter slope on SR830 Lock in. sens is string like on the front panel
+        '''
+        if type(LPFilt)==str:    
+            command='OFSL'+str(self.LowPassFilterSlopeDict[LPFilt])
+        else:
+            command='OFSL'+str(LPFilt)
+        self.sendCommand(command)
+        
+    def setInputConfig(self, config):
+        if type(config)==str:    
+            command='ISRC'+str(self.inputConfig[config])
+        else:
+            command='ISRC'+str(config)
+        self.sendCommand(command)
     
+    def setInputShield(self, shield):
+        if type(shield)==str:    
+            command='IGND'+str(self.inputShield[shield])
+        else:
+            command='IGND'+str(shield)
+        self.sendCommand(command)
+        
+    def setInputCoupling(self, coupling):
+        if type(coupling)==str:    
+            command='ICPL'+str(self.inputConfig[coupling])
+        else:
+            command='ICPL'+str(coupling)
+        self.sendCommand(command)
     
-    def GetSensetivity(self):
-        self.SendCommand('SENS ?')
+    def setInputNotchFilter(self, notchFilter):
+        if type(notchFilter)==str:
+            command='ILIN'+str(self.inputLineNotchFilter[notchFilter])
+        else:
+            command='ILIN'+str(notchFilter)
+        self.sendCommand(command)
+        
+    def setReserveMode(self, mode):
+        if type(mode)==str:
+            command='RMOD'+str(self.reserveMode[mode])
+        else:
+            command='RMOD'+str(mode)
+        self.sendCommand(command)
     
-    def Dissconnect(self):
-        self.ser.close()
+    def setSynchronousFilter(self, synchronousFilter):
+        if type(synchronousFilter)==str:    
+            command='SYNC'+str(self.reserveMode[synchronousFilter])
+        else:
+            command='SYNC'+str(synchronousFilter)
+        self.sendCommand(command)
+        
+    def setPhase(self, phase):
+        command='PHAS'+str(phase)
+        self.sendCommand(command)
+    
+    def setReferenceSource(self, source):
+        if type(source)==str:    
+            command='FMOD'+str(self.referenceSource[source])
+        else:
+            command='FMOD'+str(source)
+        self.sendCommand(command)
+    
+    def setFrequency(self, freq):
+        command='FREQ'+str(freq)
+        self.sendCommand(command)
+    
+    def setReferenceTrigger(self, refTrigger):
+        if type(refTrigger)==str:    
+            command='RSPL'+str(self.referenceTrigger[refTrigger])
+        else:
+            command='RSPL'+str(refTrigger)
+        self.sendCommand(command)
+        
+    def setHarmonic(self,harm):
+        '''sets detection harmonic, harm is integer drom 1 to 19999
+        '''
+        command='HARM'+str(harm)
+        self.sendCommand(command)
+   
+    def setSineOutputAmplitude(self,ampl):
+        '''setsthe amplitude of the sine output. Value of ampl is a voltage in Volts 0.004<=ampl<=5
+        '''
+        command='SLVL'+str(ampl)
+        self.sendCommand(command)
+#%% Get parametrs function
+    
+    def getSensitivity(self):
+        self.configuration['Sensitivity']=int(self.readLockIn('SENS ?'))
+        
+    def getTimeConstant(self):
+        self.configuration['Time constant']=int(self.readLockIn('OFLT ?'))
+        
+    def getLowPassFilterSlope(self):
+        self.configuration['Low pass filter slope']=int(self.readLockIn('OFSL ?'))
+        
+    def getInputConfig(self):
+        self.configuration['Input configuration']=int(self.readLockIn('ISRC ?'))
+        
+    def getInputShield(self):
+        self.configuration['Input shield']=int(self.readLockIn('IGND ?'))
+        
+    def getInputCoupling(self):
+        self.configuration['Input coupling']=int(self.readLockIn('ICPL ?'))
+        
+    def getInputNotchFilter(self):
+        self.configuration['Input notch filter']=int(self.readLockIn('ILIN ?'))
+        
+    def getReserveMode(self):
+        self.configuration['Reserve mode']=int(self.readLockIn('RMOD ?'))
+        
+    def getInputSynchronousFilter(self):
+        self.configuration['Synchronous filter']=int(self.readLockIn('SYNC ?'))
+        
+    def getReferenceSource(self):
+        self.configuration['Reference Source']=int(self.readLockIn('FMOD ?'))
+        
+    def getPhase(self):
+        self.configuration['Phase']=float(self.readLockIn('PHAS ?'))
+        
+    def getFrequency(self):
+        self.configuration['Frequency']=float(self.readLockIn('FREQ ?'))
+    
+    def getReferenceTrigger(self):
+        self.configuration['Reference trigger']=int(self.readLockIn('RSLP ?'))
+    
+    def getHarmonic(self):
+        self.configuration['Detection harmonic']=int(self.readLockIn('HARM ?'))
+    
+    def getSineOutputAmplitude(self):
+        self.configuration['Sine output amplitude']=float(self.readLockIn('SLVL ?'))
+        
+#%% Configuration of lockin functions
+        
+    def getConfiguration(self):
+        self.getInputConfig()
+        self.getInputCoupling()
+        self.getInputNotchFilter()
+        self.getInputShield()
+        self.getInputSynchronousFilter()
+        self.getLowPassFilterSlope()
+        self.getReserveMode()
+        self.getSensitivity()
+        self.getTimeConstant()
+        self.getFrequency()
+        self.getHarmonic()
+        self.getPhase()
+        self.getReferenceSource()
+        self.getReferenceTrigger()
+        self.getSineOutputAmplitude()
+    
+    def setConfiguration(self):
+        self.setInputConfig(self.configuration['Input configuration'])
+        self.setInputCoupling(self.configuration['Input coupling'])
+        self.setInputNotchFilter(self.configuration['Input notch filter'])
+        self.setInputShield(self.configuration['Input shield'])
+        self.setSynchronousFilter(self.configuration['Synchronous filter'])
+        self.setLowPassFilterSlope(self.configuration['Low pass filter slope'])
+        self.setReserveMode(self.configuration['Reserve mode'])
+        self.setSensitivity(self.configuration['Sensitivity'])
+        self.setTimeConstant(self.configuration['Time constant'])
+        self.setFrequency(self.configuration['Frequency'])
+        self.setHarmonic(self.configuration['Detection harmonic'])
+        self.setPhase(self.configuration['Phase'])
+        self.setReferenceSource(self.configuration['Reference source'])
+        self.setReferenceTrigger(self.configuration['Reference trigger'])
+        self.setSineOutputAmplitude(self.configuration['Sine output amplitude'])
+        
+    def saveConfiguration(self):
+        pass
+    
+    def laodConfiguration(self):
+        pass
+    
+#%%
+
+
 
 if __name__ == '__main__':
     a=USBGPIB()
@@ -122,8 +339,8 @@ if __name__ == '__main__':
     #a.ser.write(('++read\r\n').encode('utf-8'))
     time0=time.clock()
     for i in range(0,10):
-        a.ReadValue('X')
-        #print(Value)
+        a.readValue('X')
+        
     time1=time.clock()
     print(time1-time0)
-    a.Dissconnect()
+    a.disconnect()

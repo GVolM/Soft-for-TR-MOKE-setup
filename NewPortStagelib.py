@@ -57,6 +57,7 @@ class NewPortStage(object):
             else:
                 print('FirmwareVersionGet Error => ',errString)
             return result, version
+        
     def XPS_GetControllerState (self, myXPS, flag):
         result, state, errString = self.myXPS.ControllerStatusGet(System.Int32(0),System.String(""))
         if flag == 1:
