@@ -122,7 +122,7 @@ class USBGPIB(object):
         for item in parametrs:
             command=command + str(self.OutputDict[item]) + ', ' # compose command string with parametrs in input
         command=command[:-2] # cut last ', ' 
-        string=str(self.readLockIn(command))[2:-4] #reads answer, transform it to string, cut system characters
+        string=str(self.readLockIn(command))[2:-3] #reads answer, transform it to string, cut system characters
         values=string.split(',') # split answer to separated values
         output={}
         for idx, item in enumerate(parametrs): 
@@ -145,6 +145,7 @@ class USBGPIB(object):
         else:
             command='SENS'+str(sens)
         self.sendCommand(command)
+        self.getSensitivity()
         
         
     def setTimeConstant(self, timeConst):
@@ -155,6 +156,7 @@ class USBGPIB(object):
         else:
             command='OFLT'+str(timeConst)
         self.sendCommand(command)
+        self.getTimeConstant()
     
     def setLowPassFilterSlope(self, LPFilt):
         '''Sets the low pass filter slope on SR830 Lock in. sens is string like on the front panel
@@ -164,6 +166,7 @@ class USBGPIB(object):
         else:
             command='OFSL'+str(LPFilt)
         self.sendCommand(command)
+        self.getLowPassFilterSlope()
         
     def setInputConfig(self, config):
         if type(config)==str:    
@@ -171,6 +174,7 @@ class USBGPIB(object):
         else:
             command='ISRC'+str(config)
         self.sendCommand(command)
+        self.getInputConfig()
     
     def setInputShield(self, shield):
         if type(shield)==str:    
@@ -178,6 +182,7 @@ class USBGPIB(object):
         else:
             command='IGND'+str(shield)
         self.sendCommand(command)
+        self.getInputShield()
         
     def setInputCoupling(self, coupling):
         if type(coupling)==str:    
@@ -185,6 +190,7 @@ class USBGPIB(object):
         else:
             command='ICPL'+str(coupling)
         self.sendCommand(command)
+        self.getInputCoupling()
     
     def setInputNotchFilter(self, notchFilter):
         if type(notchFilter)==str:
@@ -192,6 +198,7 @@ class USBGPIB(object):
         else:
             command='ILIN'+str(notchFilter)
         self.sendCommand(command)
+        self.getInputNotchFilter()
         
     def setReserveMode(self, mode):
         if type(mode)==str:
@@ -199,6 +206,7 @@ class USBGPIB(object):
         else:
             command='RMOD'+str(mode)
         self.sendCommand(command)
+        self.getReserveMode()
     
     def setSynchronousFilter(self, synchronousFilter):
         if type(synchronousFilter)==str:    
@@ -206,10 +214,12 @@ class USBGPIB(object):
         else:
             command='SYNC'+str(synchronousFilter)
         self.sendCommand(command)
+        self.getSynchronousFilter()
         
     def setPhase(self, phase):
         command='PHAS'+str(phase)
         self.sendCommand(command)
+        self.getPhase()
     
     def setReferenceSource(self, source):
         if type(source)==str:    
@@ -217,10 +227,12 @@ class USBGPIB(object):
         else:
             command='FMOD'+str(source)
         self.sendCommand(command)
+        self.getReferenceSource()
     
     def setFrequency(self, freq):
         command='FREQ'+str(freq)
         self.sendCommand(command)
+        self.getFrequency()
     
     def setReferenceTrigger(self, refTrigger):
         if type(refTrigger)==str:    
@@ -228,18 +240,22 @@ class USBGPIB(object):
         else:
             command='RSPL'+str(refTrigger)
         self.sendCommand(command)
+        self.getReferenceTrigger()
         
     def setHarmonic(self,harm):
         '''sets detection harmonic, harm is integer drom 1 to 19999
         '''
         command='HARM'+str(harm)
         self.sendCommand(command)
+        self.getHarmonic()
    
     def setSineOutputAmplitude(self,ampl):
         '''setsthe amplitude of the sine output. Value of ampl is a voltage in Volts 0.004<=ampl<=5
         '''
         command='SLVL'+str(ampl)
         self.sendCommand(command)
+        self.getSineOutputAmplitude()
+        
 #%% Get parametrs function
     
     def getSensitivity(self):
@@ -266,7 +282,7 @@ class USBGPIB(object):
     def getReserveMode(self):
         self.configuration['Reserve mode']=int(self.readLockIn('RMOD ?'))
         
-    def getInputSynchronousFilter(self):
+    def getSynchronousFilter(self):
         self.configuration['Synchronous filter']=int(self.readLockIn('SYNC ?'))
         
     def getReferenceSource(self):
@@ -294,7 +310,7 @@ class USBGPIB(object):
         self.getInputCoupling()
         self.getInputNotchFilter()
         self.getInputShield()
-        self.getInputSynchronousFilter()
+        self.getSynchronousFilter()
         self.getLowPassFilterSlope()
         self.getReserveMode()
         self.getSensitivity()
