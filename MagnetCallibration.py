@@ -9,6 +9,8 @@ import CurrentSupplyLib
 import Gaussmeterlib
 import matplotlib
 import time
+import numpy as np
+import h5py
 
 
 class MagnetCallibration(object):
@@ -39,21 +41,28 @@ class MagnetCallibration(object):
         Gauss=Gaussmeterlib.Gaussmeter()
         for item in self.Currents:
             CurrentSup.SetCurrent(item)
-            time.sleep(0.5)
-            self.Fields.append(Gauss.MeasureField(2))
+            time.sleep(2)
+            self.Fields.append(Gauss.MeasureField(10))
             CurrentSup.GetCurrent()
             self.CurrentReal.append(CurrentSup.CurrentMeas)
         CurrentSup.OutputOFF()    
         CurrentSup.SetVoltage(0)
         CurrentSup.SetCurrent(0)
+        Gauss.close()
         matplotlib.pyplot.plot(self.Currents,self.Fields)
         matplotlib.pyplot.plot(self.CurrentReal,self.Fields)
         
         
-    def SaveCallibrationFile(self):
-        pass
+    def SaveCallibrationFile(self,name):
+        File=h5py.File(name+".hdf5", "w")
+        data=np.array([self.Currents,self.Fields])
+        dset=File.create_dataset("fieldcal",(len(self.Currents),2))
+        dset[...]=data
+        File.close()
+        
     
 if __name__=='__main__':
     a=MagnetCallibration()
-    a.CreateCurrents(0,5,20)
+    a.CreateCurrents(0,5,50)
     a.MeasureFields()
+    a.SaveCallibrationFile("Mgnetcalibration")

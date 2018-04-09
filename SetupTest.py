@@ -59,9 +59,9 @@ def MeasureHys():
         
 def Meas():
     signal=[]
-    avg=2
+    avg=10
     for i in range(avg):
-        signal.append(Lockin.ReadValue('X'))
+        signal.append(Lockin.readValue('R'))
     print(signal)
     val=sum(signal)/avg
     return val   

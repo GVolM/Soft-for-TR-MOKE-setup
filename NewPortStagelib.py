@@ -71,6 +71,7 @@ class NewPortStage(object):
         '''Moves stage to given position in range of +/- 150 mm '''
         self.myXPS.GroupMoveAbsolute(System.String(self.StageName),[System.Double(Position)],System.Int32(1),System.String(""))
         self.CurrentPosition=Position
+        print(Position)
         
     def GetCurrentPosition(self):
         pos=self.myXPS.GetCurrentPosition(System.Double(0),System.Double(0),System.Int32(1),System.Int32(1),System.Int32(1),System.Int32(1),System.String(self.StageName))

@@ -11,8 +11,9 @@ class Cryostat(object):
     def __init__(self):
         self.temperuture=0              
         self.ser=serial.Serial()
-        self.ser.port='COM1'
-        self.ser.baudrate=9600
+        self.ser.port='COM7'
+        self.ser.baudrate=115200
+        self.ser.timeout=1
         
     def writestring(self, SCPICommands):
         '''Transform list of SCPI commands to strig for writing to RS-485 port. Adds address of port and seporator, transform it to required format. SCPICommands should be list of strings'''
@@ -23,27 +24,27 @@ class Cryostat(object):
         return String.encode('utf-8')
     
     def SendCommand(self, Command):
-        self.ser.open()
+        #self.ser.open()
         self.ser.write((Command).encode('utf-8'))
-        self.ser.close()
+        #self.ser.close()
     
     def connect(self):
-        try:
-            self.ser.open()
-            self.ser.write(self.writestring('*IDN?'))
-            print(self.ser.readline())
-            commands=['READ','SYS','TIME']
-            self.ser.write(self.writestring(commands))
-            print(self.ser.readline())
-            self.ser.close()
-        except: 
-            self.ser.close()
+    
+        self.ser.open()
+        self.ser.write('*IDN?\r\n'.encode('utf-8'))
+        print(self.ser.readline())
+        #commands=['READ','SYS','TIME']
+        self.ser.write('READ:SYS:TIME\r\n'.encode('utf-8'))
+        print(self.ser.readline())
+            #self.ser.close()
+        #except: 
+        self.ser.close()
             
     def SetTemperature(self, temperature):
         try:
-            self.ser.open()
+            #self.ser.open()
             command=['SET','DEV','MB1.T1','TEMP','TSET',str(temperature)]
             self.ser.write(self.writesttring(command))
-            self.ser.close()
+            #self.ser.close()
         except:
             self.close
