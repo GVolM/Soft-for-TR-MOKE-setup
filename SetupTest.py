@@ -8,6 +8,8 @@ Created on Fri Nov 24 14:51:16 2017
 import CurrentSupplyLib
 import USBGPIBlib
 import time
+import h5py
+import numpy as np
 import matplotlib 
 
 Lockin=USBGPIBlib.USBGPIB()
@@ -26,12 +28,12 @@ def MeasureHys():
     Currents=[]
     Currents2=[]
     CurrStart=0
-    CurrStop=5
-    step=0.1
+    CurrStop=10
+    step=0.05
     Signal=[]
-    for i in range(0,50):
+    for i in range(0,200):
         Currents.append(CurrStart+i*step)
-    for i in range(0,51):
+    for i in range(0,201):
         Currents.append(CurrStop - i*step)  
     for item in Currents:
         Currents2.append(-item)
@@ -42,7 +44,7 @@ def MeasureHys():
     for item in Currents2:
         print(-item)
         Magnet.SetCurrent(-item)
-        time.sleep(1)
+        time.sleep(3)
         Signal.append(Meas())
     Magnet.OutputOFF()
     time.sleep(1)
@@ -52,10 +54,11 @@ def MeasureHys():
     for item in Currents2:
         print(item)
         Magnet.SetCurrent(-item)
-        time.sleep(1)
+        time.sleep(3)
         Signal.append(Meas())
     Magnet.OutputOFF()
     matplotlib.pyplot.plot(Currents, Signal)
+    SaveHys("Hys2a",Currents, Signal)
         
 def Meas():
     signal=[]
@@ -66,6 +69,13 @@ def Meas():
     val=sum(signal)/avg
     return val   
     
+def SaveHys(name,X,Y):
+    File=h5py.File(name+".hdf5", "w")
+    data=np.array([X,Y])
+    dset=File.create_dataset("Hys",(len(X),2))
+    dset[...]=data.T
+    File.close()
+        
 MeasureHys()
  
 #Magnet.SetCurrent(5)
