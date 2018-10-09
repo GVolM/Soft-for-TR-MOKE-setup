@@ -35,7 +35,8 @@ def CreatePoints(start, stop, N):
     for i in range(0,N):
         Points.append(start+i*step)
     return Points
-def Meas(avg=10, sleep=0.9, var='R'):
+    
+def Meas(avg=10, sleep=1, var='R'):
     signal=[]
     time.sleep(sleep)
     for i in range(avg):
@@ -74,12 +75,12 @@ def MeasureHys():
     Currents=[]
     Currents2=[]
     CurrStart=0
-    CurrStop=10
-    step=0.5
+    CurrStop=7
+    step=1
     
-    for i in range(0,20):
+    for i in range(0,7):
         Currents.append(CurrStart+i*step)
-    for i in range(0,21):
+    for i in range(0,8):
         Currents.append(CurrStop - i*step)  
     for item in Currents:
         Currents2.append(-item)
@@ -87,26 +88,27 @@ def MeasureHys():
         Currents.append(item)   
     
     
-    for item in Currents2:
-        Filename='RuCl3-Kerr-T=4.2k=pr-0.3-pu-0.5-H-pos-'+str(item)+'-after-'+str(item-1)
+    for idx, item in enumerate(Currents2):
+        Filename='20.05.2018-RuCl3-Refl-T=4.2k=pr-0.2-pu-0.15-H-pos-'+str(-item)+'-idx-'+str(idx)
         print(-item)
         Magnet.SetCurrent(-item)
         time.sleep(10)
-        stepscanMeas(Filename,-110,150,500)
+        stepscanMeas(Filename,-110,150,250)
     Magnet.OutputOFF()
     time.sleep(1)
     Magnet.SwitchReverse()
     Magnet.OutputON()
     
-    for item in Currents2:
-        Filename='RuCl3-Kerr-T=4.2k=pr-0.3-pu-0.5-H-neg-'+str(item)+'-after-'+str(item+2)
+    for idx, item in enumerate(Currents2):
+        Filename='20.05.2018-RuCl3-Refl-T=4.2k=pr-0.2-pu-0.15-H-neg-'+str(item)+'-idx-'+str(idx)
 
         print(item)
         Magnet.SetCurrent(-item)
         time.sleep(10)
-        stepscanMeas(Filename,-110,150,500)
+        stepscanMeas(Filename,-110,150,250)
     Magnet.OutputOFF()
-#Filename='RuCl3-Kerr-T=4.3k=pr-0.2-pu-0.2-H-0AFWD-circpolafterheat'    
-#stepscanMeas(Filename,-107,150,200)
-MeasureHys()
-
+Filename='CCF-NEWgratings_realigned'    
+stepscanMeas(Filename,-93.3,-93.6,420)
+#MeasureHys()
+Lockin.disconnect()
+Stage.Close()
