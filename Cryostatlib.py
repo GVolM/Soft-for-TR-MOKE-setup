@@ -10,7 +10,8 @@ import time
 class Cryostat(object):
     
     def __init__(self):
-        self.temperuture=0              
+        self.temperuture_current=0
+        self.temperature_set=0              
         self.COMPort='COM8'
         self.Baud=115200
         self.ser=serial.Serial()
@@ -84,8 +85,9 @@ class Cryostat(object):
             command=['SET','DEV','MB1.T1','TEMP','LOOP','TSET',str(temperature)]
             self.ser.write(self.writestring(command))
             responce=str(self.ser.readline())
+            self.temperature_set=temperature
             print(responce)
-            if response.split(sep=':')[-1]='VALID':
+            #if response.split(sep=':')[-1]='VALID':
                 
             
         except Exception as xui: 
@@ -102,10 +104,24 @@ class Cryostat(object):
             print(response)
             temperature1=str(response).split(sep=':')[6]
             temperature=float(temperature1[:-5])
+            self.temperuture_current=temperature
             return(temperature)
         except Exception as xui: 
             print('error'+str(xui))
             self.ser.close
+    def change_temperature(self, temperature, tolerance=0.1):
+        '''set temperature to the desired Value, wait untll real temperature will become desired and stable. tolerance in kelvin'''
+        self.set_temperature(temperature)
+        
+        self.check_temp(tolerance)
+        temp=[]
+        
+        for i in range(1,10):
+            temp.append(self.get_temperature())
+            time.sleep(0.1)
+        if max(temp)-min(temp)>tolerance:
+            self.check_temp
+        print('tamperature has reached desired value an stable. Current temperature is '+str(self.temperature_current+'K'))
 #%%
 if __name__=='__main__':
     cryo=Cryostat()
